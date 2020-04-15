@@ -2,13 +2,27 @@ const { Client } = require("pg");
 const express = require("express");
 const app = express();
 var bodyParser = require("body-parser");
+var admin = require("firebase-admin");
 //app.use(express.json())
+const firebaseConfig = {
+  apiKey: "AIzaSyAfTS_Gehnvxct7oVDSyfO9Ob92SFWwwQM",
+  authDomain: "partyplanner-7131d.firebaseapp.com",
+  databaseURL: "https://partyplanner-7131d.firebaseio.com",
+  projectId: "partyplanner-7131d",
+  storageBucket: "partyplanner-7131d.appspot.com",
+  messagingSenderId: "736310198115",
+  appId: "1:736310198115:web:5b083a51f683218106dd56",
+  measurementId: "G-3NBTPPY1Z8",
+};
+
+admin.initializeApp(firebaseConfig);
 
 app.use(
   bodyParser.json({
     limit: "100mb",
   })
 );
+
 app.use(
   bodyParser.urlencoded({
     limit: "50mb",
@@ -50,6 +64,24 @@ app.get("/buscaEventoPorNome", async (req, res) => {
   const rows = await buscaEventoPorNome(req.query.nome);
   res.setHeader("content-type", "application/json");
   res.send(JSON.stringify(rows));
+});
+
+app.post("/verifyToken", (req, res) => {
+  const reqJson = req.body;
+  console.log(reqJson);
+  admin
+    .auth()
+    .verifyIdToken(reqJson.token)
+    .then(function (decodedToken) {
+      let uid = decodedToken.uid;
+      res.setHeader("content-type", "application/json");
+      res.send({ isValid: true });
+    })
+    .catch(function (error) {
+      console.error(error);
+      res.setHeader("content-type", "application/json");
+      res.send({ isValid: false });
+    });
 });
 
 app.post("/eventos", async (req, res) => {
